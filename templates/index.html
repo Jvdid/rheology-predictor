@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rheology Property Predictor</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-primary">Rheology Predictor App</h1>
+            <p class="lead text-muted">Predict Plastic Viscosity (PV) & Dynamic Yield Stress (DYS) instantly</p>
+        </header>
+
+        {% if error %}
+        <div class="alert alert-danger text-center" role="alert">{{ error }}</div>
+        {% endif %}
+
+        <div class="row g-4">
+            <div class="col-lg-7">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body p-4">
+                        <h4 class="card-title mb-4 text-secondary">Single Sample Estimation</h4>
+                        
+                        <form action="/predict" method="POST">
+                            <div class="row g-3">
+                                {% set features = [
+                                    {'id': 'C', 'label': 'Cement'},
+                                    {'id': 'W', 'label': 'Water'},
+                                    {'id': 'S', 'label': 'Sand'},
+                                    {'id': 'G', 'label': 'Gravel'},
+                                    {'id': 'SF', 'label': 'Silica Fume'},
+                                    {'id': 'FA', 'label': 'Fly Ash'},
+                                    {'id': 'LS', 'label': 'Lime Stone'},
+                                    {'id': 'SP', 'label': 'Superplasticizer'},
+                                    {'id': 'TM', 'label': 'Time after Mixing'}
+                                ] %}
+                                {% for f in features %}
+                                <div class="col-md-4">
+                                    <label for="{{ f.id }}" class="form-label fw-semibold">{{ f.label }}</label>
+                                    <input type="number" step="any" class="form-control" id="{{ f.id }}" name="{{ f.id }}" 
+                                           placeholder="{{ f.id }}"
+                                           value="{{ single_results.inputs[f.id] if single_results else '' }}" required>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold">Generate Prediction</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="d-flex flex-column gap-4">
+                    
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4">
+                            <h4 class="card-title mb-3 text-secondary">Batch Processing</h4>
+                            <p class="small text-muted">Upload a `.csv` file. Note: Column headers inside the file must still use the short keys: <strong>C, W, S, G, SF, FA, LS, SP, TM</strong>.</p>
+                            <form action="/predict_csv" method="POST" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <input class="form-control" type="file" id="formFile" name="file" accept=".csv" required>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100 fw-bold">Process & Download Results</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {% if single_results %}
+                    <div class="card shadow border-primary animated fadeIn">
+                        <div class="card-body p-4 text-center">
+                            <h4 class="card-title text-primary mb-4">Prediction Results</h4>
+                            
+                            <div class="row">
+                                <div class="col border-end">
+                                    <h6 class="text-uppercase text-muted small">Plastic Viscosity (PV)</h6>
+                                    <p class="display-6 fw-bold mb-0 text-dark">{{ single_results.pv }}</p>
+                                    <span class="text-muted small">± {{ single_results.pv_err }}</span>
+                                </div>
+                                <div class="col">
+                                    <h6 class="text-uppercase text-muted small">Dynamic Yield Stress (DYS)</h6>
+                                    <p class="display-6 fw-bold mb-0 text-dark">{{ single_results.dys }}</p>
+                                    <span class="text-muted small">± {{ single_results.dys_err }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
